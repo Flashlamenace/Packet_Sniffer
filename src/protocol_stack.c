@@ -72,6 +72,5 @@ void header_handling(unsigned char *buffer, int buffer_lenght){
             printf("%.2X", data[i]);
         }
     }
-    lll
 }
 
