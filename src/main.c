@@ -1,8 +1,15 @@
 #include "../includes/protocol_stack.h"
 #include "../includes/socket_handling.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <signal.h>
+
+volatile sig_atomic_t stop;
+void handle_sigint(int sig) {
+    stop = 1;
+}
 
 int main (void){
     char *opt = "wlp1s0";
@@ -13,15 +20,20 @@ int main (void){
     unsigned char *buffer = (unsigned char*) malloc(65536);
     memset(buffer,0,65536);
    
-    while (1) {
+    signal(SIGINT, handle_sigint);
+
+    while (!stop) {
     
         struct sockaddr saddr;
         int saddr_len = sizeof (saddr);
 
         buffer_lenght = recvfrom(socket_fd, buffer, 65536, 0, &saddr, (socklen_t *) &saddr_len);
+        if (buffer_lenght < 0) {
+            perror("recvfrom failed");
+            break;
+        }
         
-        header_handling(buffer, buffer_lenght);
-
+        print_all_sock_hdr(buffer, buffer_lenght);
     }
 
     free(buffer);

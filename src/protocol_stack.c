@@ -8,10 +8,9 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 
-void header_handling(unsigned char *buffer, int buffer_lenght){
 
-    // ETHERNET HEADER :
-
+    // ETHERNET HEADER : Takes a buffer and print out the ethernet header according to the ethhd structure.
+void ethernet_header(unsigned char *buffer){
     struct ethhdr *eth = (struct ethhdr *) (buffer); // Here i use a pointer to the adress of the structure so i can reference it later whitout creating x copy of 
     //                                               said struc. I then cast the struc ethhdr type to buffer in the code for clarity because this is what would have done.
     
@@ -23,9 +22,9 @@ void header_handling(unsigned char *buffer, int buffer_lenght){
         eth->h_source[0], eth->h_source[1], eth->h_source[2],
         eth->h_source[3], eth->h_source[4], eth->h_source[5]);
     printf(" -Protocol: 0x%04x\n", ntohs(eth->h_proto));
-   
-    // IP HEADER :
-
+}
+    // IP HEADER : takes a buffer and print out the IP header according to the iphdr structure.
+void ip_header(unsigned char *buffer){
     struct iphdr *ip = (struct iphdr *) (buffer + sizeof(struct ethhdr)); 
     //to set the proper data into the struct we need to increment the buffer pointer to after the eth header.
      
@@ -40,9 +39,11 @@ void header_handling(unsigned char *buffer, int buffer_lenght){
     printf("\n -Destination Addr: %s \n",  inet_ntoa(*(struct in_addr *)&ip->daddr));
 
     //TO DO : et faire correspondre le numéro du protocol à la str du protocole utilisé.
-
+}
 // Protocols Header :
+    
     // TCP :
+void tcp_header(unsigned char *buffer){
     struct tcphdr *tcp = (struct tcphdr *) (buffer + sizeof(struct ethhdr) + sizeof(struct iphdr));
 
     printf("\nTCP HEADER :");
@@ -58,10 +59,11 @@ void header_handling(unsigned char *buffer, int buffer_lenght){
     printf("\n       Reset          : %d", tcp->rst);
     printf("\n       Synchronisation: %d", tcp->syn);
     printf("\n       Fin            : %d\n\n", tcp->fin);
-
+}
     //TODO Ajouter les autres protocoles
 
-// DATA :
+// PAYLOAD : Take an unsigned char buffer and an int buffer_lenght as argument and print the payload contained inside of the packet.
+void payload_print(unsigned char *buffer, int buffer_lenght){
     unsigned char *data = buffer - (sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct tcphdr));
     int remaining_data = buffer_lenght - (sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct tcphdr));
 
@@ -74,3 +76,11 @@ void header_handling(unsigned char *buffer, int buffer_lenght){
     }
 }
 
+void print_all_sock_hdr(unsigned char *buffer, int buffer_lenght){
+    
+    ethernet_header(buffer);
+    ip_header      (buffer);
+    tcp_header     (buffer);
+    payload_print  (buffer, buffer_lenght);
+
+}
